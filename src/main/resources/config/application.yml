@@ -8,16 +8,51 @@ spring:
   main:
     web-application-type: reactive
     allow-bean-definition-overriding: true
+  # Configuración R2DBC para MySQL
+  r2dbc:
+    url: r2dbc:mysql://localhost:3306/inventory_db?useSSL=false&allowPublicKeyRetrieval=true
+    username: root
+    password: root
+    pool:
+      initial-size: 5
+      max-size: 20
+      max-idle-time: 30m
+      max-acquire-time: 5s
+
+  # Configuración Flyway para migraciones (opcional)
+  flyway:
+    enabled: false # Cambiar a true si usas migraciones
+
+  # Jackson configuration
+  jackson:
+    serialization:
+      write-dates-as-timestamps: false
+    time-zone: America/Lima
+
 logging:
   config: classpath:logging/logback.xml
+  level:
+    pe.farmaciasperuanas: DEBUG
+    org.springframework.r2dbc: DEBUG
+
 springdoc:
   swagger-ui:
     path: /swagger-ui.html
+
 management:
   endpoints:
     web:
       exposure:
         include: info, health, metrics
+
 validation-custom:
   app-id-flag: 0
   app-id: ZnBzLWJ1cy1tcy12ZW5hci1yYXZhc2g=
+
+# Configuración del servicio ML
+ml:
+  service:
+    url: ${ML_SERVICE_URL:http://localhost:5000}
+    enabled: ${ML_SERVICE_ENABLED:false}
+    timeout: 5000
+    retry-attempts: 3

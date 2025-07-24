@@ -1,3 +1,4 @@
+
 package pe.farmaciasperuanas.ti.venar.ravash;
 
 import org.springframework.boot.SpringApplication;
@@ -9,7 +10,6 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * <b>Copyright</b>: 2025 Farmacias Peruanas.<br/>
  * <b>Company</b>: Farmacias Peruanas.<br/>
  *
-
  * <u>Developed by</u>: <br/>
  * <ul>
  * <li>Mirko Bermudez</li>
@@ -21,13 +21,13 @@ import org.springframework.boot.autoconfigure.SpringBootApplication;
  * @version 1.0
  */
 
-@SpringBootApplication
+@SpringBootApplication(scanBasePackages = "pe.farmaciasperuanas.ti.venar.ravash")
 public class RavashApplication {
 
   /**
    * Main method.
    */
   public static void main(String[] args) {
-    new SpringApplication(RavashApplication.class).run(args);
+    SpringApplication.run(RavashApplication.class, args);
   }
 }

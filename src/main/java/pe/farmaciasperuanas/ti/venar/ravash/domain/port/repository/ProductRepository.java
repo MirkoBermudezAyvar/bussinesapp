@@ -31,6 +31,6 @@ public interface ProductRepository extends ReactiveCrudRepository<Product, Long>
             "WHERE p.perishable = true " +
             "AND EXISTS (SELECT 1 FROM inventory i " +
             "WHERE i.product_id = p.id " +
-            "AND i.expiration_date <= CURRENT_DATE + INTERVAL '7 days')")
+            "AND i.expiration_date <= DATE_ADD(CURRENT_DATE, INTERVAL 7 DAY))")
     Flux<Product> findExpiringProducts();
 }

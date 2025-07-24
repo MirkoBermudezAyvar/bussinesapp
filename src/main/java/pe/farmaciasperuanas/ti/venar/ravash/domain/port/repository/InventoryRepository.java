@@ -20,11 +20,6 @@ public interface InventoryRepository extends ReactiveCrudRepository<Inventory, L
     @Query("SELECT * FROM inventory WHERE current_stock <= reserved_stock + 5")
     Flux<Inventory> findCriticalStock();
 
-    @Query("UPDATE inventory SET current_stock = current_stock + :quantity, " +
-            "last_movement = CURRENT_TIMESTAMP " +
-            "WHERE product_id = :productId AND warehouse_id = :warehouseId")
-    Mono<Void> updateStock(Long productId, Long warehouseId, Integer quantity);
-
     @Query("SELECT SUM(current_stock * " +
             "(SELECT cost_price FROM products WHERE id = inventory.product_id)) " +
             "as total_value FROM inventory")

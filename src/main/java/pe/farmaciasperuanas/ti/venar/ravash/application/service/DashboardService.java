@@ -1,11 +1,12 @@
 package pe.farmaciasperuanas.ti.venar.ravash.application.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
 import pe.farmaciasperuanas.ti.venar.ravash.domain.dto.DashboardDTO;
 import pe.farmaciasperuanas.ti.venar.ravash.domain.dto.ProductDTO;
+import pe.farmaciasperuanas.ti.venar.ravash.domain.dto.StockPredictionDTO;
+import pe.farmaciasperuanas.ti.venar.ravash.domain.dto.AlertSummary;
 import pe.farmaciasperuanas.ti.venar.ravash.domain.port.repository.AlertRepository;
 import pe.farmaciasperuanas.ti.venar.ravash.domain.port.repository.InventoryRepository;
 import pe.farmaciasperuanas.ti.venar.ravash.domain.port.repository.ProductRepository;
@@ -87,7 +88,7 @@ public class DashboardService {
                         .defaultIfEmpty(0L),
                 alertRepository.findRecentAlerts(LocalDateTime.now().minusDays(1))
                         .take(5)
-                        .map(alert -> DashboardDTO.AlertSummary.builder()
+                        .map(alert -> AlertSummary.builder()
                                 .id(alert.getId())
                                 .type(alert.getType())
                                 .severity(alert.getSeverity())
@@ -174,7 +175,7 @@ public class DashboardService {
     private record AlertMetrics(
             Integer critical,
             Integer warning,
-            java.util.List<DashboardDTO> recent
+            java.util.List<AlertSummary> recent
     ) {}
 
     private record CriticalProducts(

@@ -1,6 +1,5 @@
 package pe.farmaciasperuanas.ti.venar.ravash.application.service;
 
-
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.stereotype.Service;
@@ -23,7 +22,7 @@ public class ProductService {
         log.info("Creating product with SKU: {}", dto.getSku());
 
         return productRepository.findBySku(dto.getSku())
-                .flatMap(existing -> Mono.error(new RuntimeException("SKU ya existe: " + dto.getSku())))
+                .flatMap(existing -> Mono.<Product>error(new RuntimeException("SKU ya existe: " + dto.getSku())))
                 .switchIfEmpty(Mono.defer(() -> {
                     Product product = Product.builder()
                             .sku(dto.getSku())
@@ -46,7 +45,7 @@ public class ProductService {
     public Mono<ProductDTO> getProduct(Long id) {
         return productRepository.findById(id)
                 .switchIfEmpty(Mono.error(new RuntimeException("Producto no encontrado: " + id)))
-                .flatMap(product -> enrichWithInventoryData(product));
+                .flatMap(this::enrichWithInventoryData);
     }
 
     public Flux<ProductDTO> getAllProducts() {
@@ -108,7 +107,10 @@ public class ProductService {
                 });
     }
 
-    private Double calculateStockHealth(int currentStock, int minStock, int maxStock) {
+    private Double calculateStockHealth(int currentStock, Integer minStock, Integer maxStock) {
+        if (minStock == null) minStock = 0;
+        if (maxStock == null) maxStock = Integer.MAX_VALUE;
+
         if (currentStock < minStock) {
             return Math.max(0, (double) currentStock / minStock * 50);
         } else if (currentStock > maxStock) {
@@ -121,7 +123,10 @@ public class ProductService {
         }
     }
 
-    private String determineStockStatus(int currentStock, int minStock, int maxStock) {
+    private String determineStockStatus(int currentStock, Integer minStock, Integer maxStock) {
+        if (minStock == null) minStock = 0;
+        if (maxStock == null) maxStock = Integer.MAX_VALUE;
+
         if (currentStock <= minStock * 0.5) {
             return "CRITICAL";
         } else if (currentStock < minStock) {
