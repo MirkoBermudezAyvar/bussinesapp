@@ -1,0 +1,106 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: fps-bus-ms-venar-ravash
+  namespace: #{NAMESPACE}
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      app: fps-bus-ms-venar-ravash
+  template:
+    metadata:
+      labels:
+        app: fps-bus-ms-venar-ravash
+    spec:
+      containers:
+        - name: fps-bus-ms-venar-ravash
+          image: gcr.io/#{PROJECT}/fps-bus-ms-venar-ravash:#{TAG}
+          env:
+            - name: PROFILE
+              value: #{PROFILE}
+            - name: LOG_LEVEL_SYSTEM
+              value: "INFO"
+            - name: LOG_LEVEL_BUSINESS
+              value: "ERROR"
+            - name: LOGGER_DIR
+              value: "/var/log/fps-bus-ms-venar-ravash"
+            - name: NEW_RELIC_LICENSE_KEY
+              valueFrom:
+                secretKeyRef:
+                  name: newrelic
+                  key: licenseKey
+                  optional: true
+            - name: NEW_RELIC_APP_NAME
+              value: "fps-bus-ms-venar-ravash"
+          resources:
+            requests:
+              cpu: 0.125
+              memory: "256Mi"
+            limits:
+              cpu: 0.5
+              memory: "1024Mi"
+          ports:
+            - containerPort: #{PORT}
+      restartPolicy: Always
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: fps-bus-ms-venar-ravash
+  namespace: #{NAMESPACE}
+spec:
+  ports:
+    - name: http
+      protocol: "TCP"
+      port: 80
+      targetPort: #{PORT}
+  type: ClusterIP
+  selector:
+    app: fps-bus-ms-venar-ravash
+---
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: fps-bus-ms-venar-ravash
+  namespace: #{NAMESPACE}
+  annotations:
+    kubernetes.io/ingress.class: "nginx"
+    ingress.kubernetes.io/force-ssl-redirect: "true"
+    ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/ssl-redirect: "true"
+    nginx.ingress.kubernetes.io/from-to-www-redirect: "true"
+    nginx.ingress.kubernetes.io/client-body-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-body-size: 100m
+    nginx.ingress.kubernetes.io/proxy-buffer-size: 100m
+    nginx.ingress.kubernetes.io/proxy-connect-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-read-timeout: '3600'
+    nginx.ingress.kubernetes.io/proxy-send-timeout: '3600'
+    nginx.org/location-snippets: |
+      server_tokens off;
+      add_header Content-Security-Policy: "default-src 'self'; script-src 'self' https://www.google.com/recaptcha/ https://www.gstatic.com/recaptcha/; object-src 'none'; style-src 'self' 'unsafe-inline'; frame-src 'self' https://www.google.com/recaptcha/; script-src 'self' https://www.google-analytics.com";
+      add_header Referrer-Policy: "Referrer-Policy: strict-origin-when-cross-origin";
+      add_header X-Frame-Options: "SAMEORIGIN" always;
+      add_header X-XSS-Protection: "1; mode=block" always;
+      add_header X-Content-Type-Options: "nosniff" always;
+      add_header Feature-Policy "autoplay 'none'; camera 'none'" always;
+      add_header Strict-Transport-Security "max-age=31536000; includeSubdomains; preload";
+  labels:
+    type: endpoints-app
+    owner: fps
+spec:
+  tls:
+    - hosts:
+        - #{SUBDOMAIN}.#{DOMAIN}
+      secretName: #{SECRET}
+  rules:
+    - host: #{SUBDOMAIN}.#{DOMAIN}
+      http:
+        paths:
+          - path: /
+            pathType: ImplementationSpecific
+            backend:
+              service:
+                name: fps-bus-ms-venar-ravash
+                port:
+                  number: 80
